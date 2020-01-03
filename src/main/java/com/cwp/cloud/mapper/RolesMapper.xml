@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cwp.cloud.mapper.RolesMapper">
+    <resultMap id="roles" type="com.cwp.cloud.bean.user.Roles">
+        <result property="id" column="id"/>
+        <result property="rolesName" column="roles_name"/>
+    </resultMap>
+
+    <select id="getAllRoles" resultMap="roles">
+        SELECT
+            r.id,
+            r.roles_name
+         FROM
+            roles AS r
+         WHERE r.roles_name &lt;&gt; 'admin'
+    </select>
+
+    <select id="getRolesList" resultMap="roles">
+        SELECT
+            r.id,
+            r.roles_name
+         FROM
+            roles AS r
+        <where>
+            <if test="rolesName != null and rolesName.trim() != ''">
+                AND r.roles_name = #{rolesName}
+            </if>
+        </where>
+        ORDER BY r.id ASC
+    </select>
+
+    <insert id="addRoles" parameterType="com.cwp.cloud.bean.user.Roles">
+        INSERT INTO roles (id, roles_name)
+        VALUES (#{id}, #{rolesName})
+    </insert>
+</mapper>

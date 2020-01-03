@@ -1,0 +1,122 @@
+-- drop SCHEMA cloud CASCADE;
+
+CREATE SCHEMA cloud;
+
+-- 创建接收巡检车发送的数据表
+CREATE TABLE cloud.message_data (
+  id                 SERIAL PRIMARY KEY NOT NULL, -- 自增
+  message_id         TEXT, -- 消息唯一标识
+  batch_number       TEXT, -- 巡检批次
+  min_batch_number   TEXT, -- 小批次号
+  patrol_car_id      TEXT, -- 巡检车编号
+  patrol_car_number  TEXT, -- 巡检车车牌号
+  area_number        TEXT, -- 区域编号
+  area_name          TEXT, -- 区域名称
+  park_number        TEXT, -- 车位号
+  park_status        TEXT, -- 车位状态
+  car_number         TEXT, -- 车牌号
+  photograph_time    TEXT, -- 拍照时间
+  push_status        TEXT, -- 推送状态
+  push_time          TEXT, -- 推送时间
+  send_status        TEXT, -- 发送状态
+  type               TEXT, -- 分析结果类型
+  record_time        TEXT, -- 系统调用时间
+  new_car_number     TEXT, -- 修改后的新车牌号
+  panorama           TEXT, -- 全景图
+  distribution       TEXT, -- 是否已经分配给操作员
+  update_time        TEXT, -- 人为修改时间
+  distribution_times INT, -- 记录分配了几个人(一条数据分配给两个操作员)
+  one_user_id        INT, -- 第一次分配的 userId
+  two_user_id        INT, -- 第二次分配的 userId
+  three_user_id      INT, -- 第三次分配的 userId
+  tag                TEXT, -- 巡检类型(巡检车/手机)
+  status             TEXT -- 激光返回的有车无车状态
+);
+
+-- 创建图片记录表
+CREATE TABLE cloud.parking_space_images (
+  patrol_car_number TEXT, -- 巡检车车牌号
+  batch_number      TEXT, -- 停车信息表中的批次
+  park_number       TEXT, -- 车位号
+  image             TEXT, -- 图片
+  image_post        TEXT, -- 摄像头(前中后)
+  time              TEXT, -- 照片自带的时间戳
+  frequency         TEXT, -- 记录是第一次还是第二次分析时存储的
+  send_status       TEXT -- 记录是否已经接收到图片(推送需要确保文字和图片都已有)
+);
+
+-- 创建 Kafka 主题表
+CREATE TABLE cloud.kafka_topic (
+  id          SERIAL PRIMARY KEY NOT NULL, -- 自增
+  topic_level TEXT, -- 主题级别
+  topic_name  TEXT -- 主题名称
+);
+
+-- 创建批次号表
+CREATE TABLE cloud.batch_number (
+  id                SERIAL PRIMARY KEY NOT NULL, -- 主键自增
+  patrol_car_number TEXT, -- 巡检车车牌号
+  number            TEXT, -- 批次号
+  time              TEXT -- 时间
+);
+
+-- 创建用户表
+CREATE TABLE cloud.users (
+  id           SERIAL PRIMARY KEY NOT NULL, -- 主键自增
+  username     TEXT UNIQUE, -- 用户名
+  password     TEXT, -- 密码(32位小写)
+  name         TEXT, -- 姓名
+  phone_number TEXT, -- 手机号
+  roles_id     INT, -- 角色id
+  area         TEXT, -- 区域
+  add_time     TEXT, -- 添加时间
+  work_status  TEXT -- 坐班状态(签到，签退)
+);
+
+INSERT INTO cloud.users (username, password, name, phone_number, roles_id, area, add_time, work_status)
+VALUES ('admin', '21232f297a57a5a743894a0e4a801fc3', '管理员', null, 1, null, '', '');
+
+-- 创建用户考勤表
+CREATE TABLE cloud.attendance (
+  id              SERIAL PRIMARY KEY NOT NULL, -- 主键自增
+  username        TEXT, -- 用户名
+  work_start_time TEXT, -- 签到时间
+  work_end_time   TEXT -- 签退时间
+);
+
+-- 创建用户作业表
+CREATE TABLE cloud.working (
+  id                  SERIAL PRIMARY KEY NOT NULL, -- 主键自增
+  message_id          TEXT, -- 关联巡检结果表
+  user_id             INT, -- 用户id
+  allocate_time       TEXT, -- 分配时间
+  allocate_car_number TEXT, -- 分配的车牌
+  audit_car_number    TEXT, -- 审核后车牌
+  audit_time          TEXT, -- 审核时间
+  feedback_result     TEXT, -- 反馈结果
+  feedback_time       TEXT, -- 反馈时间
+  times               INT -- 第几次分配
+);
+
+-- 创建角色表
+CREATE TABLE cloud.roles (
+  id               SERIAL PRIMARY KEY NOT NULL, -- 主键自增
+  roles_name       TEXT -- 角色名称
+);
+
+INSERT INTO cloud.roles (roles_name)
+VALUES ('admin');
+
+-- 创建修改车牌异常记录表(三个操作员修改结果都不一致)
+CREATE TABLE cloud.modify_results (
+  id                SERIAL PRIMARY KEY NOT NULL, -- 主键自增
+  message_id        TEXT, -- 消息唯一标识
+  patrol_car_number TEXT, -- 巡检车车牌号
+  batch_number      TEXT, -- 批次号
+  park_number       TEXT, -- 车位号
+  car_number        TEXT, -- 原车牌号
+  user_id           INT, -- 操作员 id
+  user_name         TEXT, -- 操作员名字
+  audit_car_number  TEXT, -- 审核后的车牌
+  audit_time        TEXT -- 审核时间
+);

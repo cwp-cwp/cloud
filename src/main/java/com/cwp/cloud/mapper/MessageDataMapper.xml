@@ -1,0 +1,661 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cwp.cloud.mapper.MessageDataMapper">
+
+    <resultMap id="working" type="com.cwp.cloud.bean.user.Working">
+        <result property="id" column="id"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="messageId" column="message_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="allocateTime" column="allocate_time"/>
+        <result property="allocateCarNumber" column="allocate_car_number"/>
+        <result property="auditCarNumber" column="audit_car_number"/>
+        <result property="auditTime" column="audit_time"/>
+        <result property="feedbackResult" column="feedback_result"/>
+        <result property="feedbackTime" column="feedback_time"/>
+        <result property="times" column="times"/>
+    </resultMap>
+
+    <resultMap id="BatchNumber" type="com.cwp.cloud.bean.BatchNumber">
+        <result property="id" column="id"/>
+        <result property="patrolCarNumber" column="patrol_car_number"/>
+        <result property="number" column="number"/>
+        <result property="time" column="time"/>
+    </resultMap>
+
+    <resultMap id="parkSpaceImages" type="com.cwp.cloud.bean.ParkSpaceImages">
+        <result property="id" column="id"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="patrolCarNumber" column="patrol_car_number"/>
+        <result property="batchNumber" column="batch_number"/>
+        <result property="parkNumber" column="park_number"/>
+        <result property="image" column="image"/>
+        <result property="imagePost" column="image_post"/>
+        <result property="time" column="time"/>
+        <result property="frequency" column="frequency"/>
+        <result property="sendStatus" column="send_status"/>
+    </resultMap>
+
+    <resultMap id="messageData" type="com.cwp.cloud.bean.MessageData">
+        <result property="id" column="id"/>
+        <result property="messageId" column="message_id"/>
+        <result property="batchNumber" column="batch_number"/>
+        <result property="minBatchNumber" column="min_batch_number"/>
+        <result property="patrolCarId" column="patrol_car_id"/>
+        <result property="patrolCarNumber" column="patrol_car_number"/>
+        <result property="areaNumber" column="area_number"/>
+        <result property="areaName" column="area_name"/>
+        <result property="parkNumber" column="park_number"/>
+        <result property="parkStatus" column="park_status"/>
+        <result property="carNumber" column="car_number"/>
+        <result property="photographTime" column="photograph_time"/>
+        <result property="pushStatus" column="push_status"/>
+        <result property="pushTime" column="push_time"/>
+        <result property="sendStatus" column="send_status"/>
+        <result property="type" column="type"/>
+        <result property="recordTime" column="record_time"/>
+        <result property="newCarNumber" column="new_car_number"/>
+        <result property="panorama" column="panorama"/>
+        <result property="distribution" column="distribution"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="distributionTimes" column="distribution_times"/>
+        <result property="oneUserId" column="one_user_id"/>
+        <result property="twoUserId" column="two_user_id"/>
+        <result property="threeUserId" column="three_user_id"/>
+        <result property="tag" column="tag"/>
+        <result property="status" column="status"/>
+        <collection property="parkSpaceImages" resultMap="parkSpaceImages"/>
+    </resultMap>
+
+    <insert id="saveBatchNumber" parameterType="com.cwp.cloud.bean.BatchNumber">
+        INSERT INTO batch_number (id, patrol_car_number, number, time) VALUES (#{id}, #{patrolCarNumber}, #{number}, #{time})
+    </insert>
+
+    <select id="getBatchNumByPatrolCarNumBetweenTime" resultType="java.lang.String">
+        SELECT
+        b.number
+        FROM batch_number AS b
+        <where>
+            <if test="patrolCarNumber != null and patrolCarNumber.trim() != ''">
+                AND b.patrol_car_number = #{patrolCarNumber}
+            </if>
+            <if test="(startTime != null and startTime.trim() != '') and (endTime != null and endTime.trim() != '')">
+                AND b.time BETWEEN #{startTime} AND #{endTime}
+            </if>
+        </where>
+        ORDER BY b.time DESC
+    </select>
+
+    <insert id="saveMessageData" parameterType="com.cwp.cloud.bean.MessageData">
+        INSERT INTO message_data (id, message_id, batch_number, min_batch_number, patrol_car_id, patrol_car_number, area_number, area_name, park_number, park_status, car_number, photograph_time, push_status, push_time, send_status, type, record_time, new_car_number, panorama, distribution, update_time, distribution_times, one_user_id, two_user_id, three_user_id, tag, status)
+        VALUES (#{id}, #{messageId}, #{batchNumber}, #{minBatchNumber}, #{patrolCarId}, #{patrolCarNumber}, #{areaNumber}, #{areaName}, #{parkNumber}, #{parkStatus}, #{carNumber}, #{photographTime}, #{pushStatus}, #{pushTime}, #{sendStatus}, #{type}, #{recordTime}, #{newCarNumber}, #{panorama}, #{distribution}, #{updateTime}, #{distributionTimes}, #{oneUserId}, #{twoUserId}, #{threeUserId}, #{tag}, #{status})
+    </insert>
+
+    <insert id="saveParkSpaceImages" parameterType="com.cwp.cloud.bean.ParkSpaceImages">
+        INSERT INTO parking_space_images (id, parent_id, patrol_car_number, batch_number, park_number, image, image_post, time, frequency, send_status)
+        VALUES (#{id}, #{parentId}, #{patrolCarNumber}, #{batchNumber}, #{parkNumber}, #{image}, #{imagePost}, #{time}, #{frequency}, #{sendStatus})
+    </insert>
+
+    <select id="getMessageData2" resultMap="messageData">
+        SELECT
+        m.id                 as id,
+        m.message_id         as message_id,
+        m.batch_number       as batch_number,
+        m.min_batch_number   as min_batch_number,
+        m.patrol_car_id      as patrol_car_id,
+        m.patrol_car_number  as patrol_car_number,
+        m.area_number        as area_number,
+        m.area_name          as area_name,
+        m.park_number        as park_number,
+        m.park_status        as park_status,
+        m.car_number         as car_number,
+        m.photograph_time    as photograph_time,
+        m.push_status        as push_status,
+        m.push_time          as push_time,
+        m.send_status        as send_status,
+        m.type               as type,
+        (SELECT i.time
+        FROM parking_space_images AS i
+        WHERE m.batch_number = i.batch_number
+        AND m.park_number = i.park_number
+        LIMIT 1)             as record_time,
+        m.new_car_number     as new_car_number,
+        m.panorama           as panorama,
+        m.distribution       as distribution,
+        m.update_time        as update_time,
+        m.distribution_times as distribution_times,
+        m.one_user_id        as one_user_id,
+        m.two_user_id        as two_user_id,
+        m.three_user_id      as three_user_id,
+        m.tag                as tag,
+        m.status             as status
+        FROM message_data AS m
+        <where>
+            <if test="patrolCarNumber != null and patrolCarNumber.trim() != ''">
+                AND m.patrol_car_number = #{patrolCarNumber}
+            </if>
+            <if test="areaName != null and areaName.trim() != ''">
+                AND m.area_name = #{areaName}
+            </if>
+            <if test="batchNumber != null and batchNumber.trim() != ''">
+                AND m.batch_number = #{batchNumber}
+            </if>
+            <if test="parkNumber != null and parkNumber.trim() != ''">
+                AND m.park_number = #{parkNumber}
+            </if>
+            <if test="type != null and type.trim() != ''">
+                AND m.type = #{type}
+            </if>
+            <if test="pushStatus != null and pushStatus.trim() != ''">
+                AND m.push_status = #{pushStatus}
+            </if>
+            <if test="(startTime != null and startTime.trim() != '') and (endTime != null and endTime.trim() != '')">
+                AND m.record_time BETWEEN #{startTime} AND #{endTime}
+            </if>
+            <if test="tag != null and tag.trim() != ''">
+                AND m.tag = #{tag}
+            </if>
+        </where>
+        ORDER BY record_time DESC
+    </select>
+
+    <update id="updateCarNumber">
+        UPDATE message_data
+        SET new_car_number = #{newCarNumber}, type = 'NORMAL'
+        WHERE patrol_car_number = #{patrolCarNumber} AND area_name = #{areaName} AND batch_number = #{batchNumber} AND park_number = #{parkNumber}
+    </update>
+
+    <select id="getAllMessageDataByBatchNumber" resultMap="messageData">
+         SELECT
+          m.id,
+          m.message_id,
+          m.batch_number,
+          m.min_batch_number,
+          m.patrol_car_id,
+          m.patrol_car_number,
+          m.area_number,
+          m.area_name,
+          m.park_number,
+          m.park_status,
+          m.car_number,
+          m.photograph_time,
+          m.push_status,
+          m.push_time,
+          m.send_status,
+          m.type,
+          m.record_time,
+          m.new_car_number,
+          m.panorama,
+          m.distribution,
+          m.update_time,
+          m.distribution_times,
+          m.one_user_id,
+          m.two_user_id,
+          m.three_user_id,
+          m.tag,
+          m.status,
+          i.parent_id,
+          i.patrol_car_number,
+          i.batch_number,
+          i.park_number,
+          i.image,
+          i.image_post,
+          i.time,
+          i.frequency,
+          i.send_status
+        FROM message_data AS m LEFT JOIN parking_space_images AS i
+            ON m.batch_number = i.batch_number AND m.park_number = i.park_number
+        WHERE m.batch_number = #{batchNumber}
+    </select>
+
+    <update id="updatePushStatusAndTime" parameterType="com.cwp.cloud.bean.MessageData">
+        UPDATE message_data
+        SET push_status = #{pushStatus}, push_time = #{pushTime}
+        WHERE id = #{id}
+    </update>
+
+    <select id="getLastNewCarNumber" resultType="java.lang.String">
+        SELECT *
+        FROM (
+               SELECT m.new_car_number
+               FROM message_data AS m
+               WHERE m.patrol_car_number = #{patrolCarNumber} AND m.park_number = #{parkNumber} AND
+                     m.record_time BETWEEN #{startTime} AND #{endTime}
+               ORDER BY m.record_time DESC
+             ) AS a
+        limit 1
+    </select>
+
+    <select id="getBeforeNewCarNumber" resultType="java.lang.String">
+        SELECT *
+        FROM (
+                SELECT m.new_car_number
+                FROM message_data AS m
+                WHERE m.patrol_car_number = #{patrolCarNumber} AND m.park_number = #{parkNumber}
+                AND m.photograph_time &lt; #{photographTime}
+                AND m.photograph_time BETWEEN #{startTime} AND #{endTime}
+                ORDER BY m.photograph_time DESC
+                ) AS a
+        limit 1
+    </select>
+
+    <select id="getMessageDataByUserId" resultMap="messageData">
+        SELECT
+          m.id,
+          m.message_id,
+          m.batch_number,
+          m.min_batch_number,
+          m.patrol_car_id,
+          m.patrol_car_number,
+          m.area_number,
+          m.area_name,
+          m.park_number,
+          m.park_status,
+          m.car_number,
+          m.photograph_time,
+          m.push_status,
+          m.push_time,
+          m.send_status,
+          m.type,
+          m.record_time,
+          m.new_car_number,
+          m.panorama,
+          m.distribution,
+          m.update_time,
+          m.distribution_times,
+          m.one_user_id,
+          m.two_user_id,
+          m.three_user_id,
+          m.tag,
+          m.status
+        FROM message_data AS m
+          LEFT JOIN working AS w ON m.message_id = w.message_id
+        WHERE w.user_id = #{userId} AND w.audit_car_number = '' AND w.audit_time = ''
+        ORDER BY m.record_time ${orderBy}
+        limit 1
+    </select>
+
+    <select id="getImagesByBatchNumAndParkNum" resultMap="parkSpaceImages">
+        SELECT
+          i.id,
+          i.parent_id,
+          i.patrol_car_number,
+          i.batch_number,
+          i.park_number,
+          i.image,
+          i.image_post,
+          i.time,
+          i.frequency,
+          i.send_status
+        FROM parking_space_images AS i
+        WHERE i.batch_number = #{batchNumber} AND park_number = #{parkNumber}
+    </select>
+
+    <select id="getUnPushMessageData" resultMap="messageData">
+        SELECT
+          m.id,
+          m.message_id,
+          m.batch_number,
+          m.min_batch_number,
+          m.patrol_car_id,
+          m.patrol_car_number,
+          m.area_number,
+          m.area_name,
+          m.park_number,
+          m.park_status,
+          m.car_number,
+          m.photograph_time,
+          m.push_status,
+          m.push_time,
+          m.send_status,
+          m.type,
+          m.record_time,
+          m.new_car_number,
+          m.panorama,
+          m.distribution,
+          m.update_time,
+          m.distribution_times,
+          m.one_user_id,
+          m.two_user_id,
+          m.three_user_id,
+          m.tag,
+          m.status,
+          i.id,
+          i.parent_id,
+          i.patrol_car_number,
+          i.batch_number,
+          i.park_number,
+          i.image,
+          i.image_post,
+          i.time,
+          i.frequency,
+          i.send_status
+        FROM message_data AS m LEFT JOIN parking_space_images AS i ON m.batch_number = i.batch_number AND
+                                                                                  m.park_number = i.park_number
+        WHERE (m.push_status IS NULL OR m.push_status = 'FAIL')
+        AND m.type = 'NORMAL'
+        AND m.record_time BETWEEN #{startTime} AND #{endTime}
+    </select>
+
+    <insert id="saveWorking" parameterType="com.cwp.cloud.bean.user.Working">
+        INSERT INTO working (id, parent_id, message_id, user_id, allocate_time, allocate_car_number, audit_car_number, audit_time, feedback_result, feedback_time, times)
+        VALUES (#{id}, #{parentId}, #{messageId}, #{userId}, #{allocateTime},#{allocateCarNumber}, #{auditCarNumber}, #{auditTime}, #{feedbackResult}, #{feedbackTime}, #{times})
+     </insert>
+
+    <update id="updateDisTrAndTimeAndTwoUserId">
+        UPDATE message_data
+        SET distribution = #{distribution}, distribution_times = #{distributionTimes}, two_user_id = #{userId}
+        WHERE message_id = #{messageId}
+    </update>
+
+    <update id="updateDisTrAndTimeAndOneUserId">
+        UPDATE message_data
+        SET distribution = #{distribution}, distribution_times = #{distributionTimes}, one_user_id = #{userId}
+        WHERE message_id = #{messageId}
+    </update>
+
+    <update id="updateDisTrAndTimeAndThreeUserId">
+        UPDATE message_data
+        SET distribution = #{distribution}, distribution_times = #{distributionTimes}, three_user_id = #{userId}
+        WHERE message_id = #{messageId}
+    </update>
+
+    <select id="getMessageIdByBatchNumAndParkNum" resultType="java.lang.String">
+        SELECT m.message_id
+        FROM message_data AS m
+        WHERE m.batch_number = #{batchNumber} AND park_number = #{parkNumber}
+        LIMIT 1
+    </select>
+
+    <update id="updateAuditCarNumAndAuditTime">
+        UPDATE working
+        SET audit_car_number = #{newCarNumber}, audit_time = #{time}
+        WHERE user_id = #{userId} AND message_id = #{messageId}
+    </update>
+
+    <select id="getWorkingByMsgIdAndUserId" resultMap="working">
+        SELECT
+          w.id,
+          w.parent_id,
+          w.message_id,
+          w.user_id,
+          w.allocate_time,
+          w.allocate_car_number,
+          w.audit_car_number,
+          w.audit_time,
+          w.feedback_result,
+          w.feedback_time,
+          w.times
+        FROM working AS w
+        WHERE w.message_id = #{messageId} AND w.user_id != #{userId}
+    </select>
+
+    <update id="updateCarNumberByMessageId">
+        UPDATE message_data
+        SET new_car_number = #{newCarNumber}, update_time = #{time}, type = 'NORMAL'
+        WHERE message_id = #{messageId}
+    </update>
+
+    <update id="updateFeedbackResult">
+        UPDATE working
+        SET feedback_result = #{feedbackResult}, feedback_time = #{time}
+        WHERE message_id = #{messageId}
+    </update>
+
+    <update id="updateOwnFeedbackResult">
+        UPDATE working
+        SET feedback_result = #{feedbackResult}, feedback_time = #{time}
+        WHERE message_id = #{messageId}
+        AND user_id = #{userId}
+    </update>
+
+    <select id="getAnotherUserByMsgIdAnUserId" resultType="java.lang.Integer">
+        SELECT w.user_id
+        FROM working AS w
+        WHERE w.message_id = #{messageId} AND user_id != #{userId}
+        LIMIT 1
+    </select>
+
+    <select id="getCarNumberByMessageId" resultType="java.lang.String">
+        SELECT m.car_number
+        FROM message_data as m
+        WHERE m.message_id = #{messageId}
+        LIMIT 1
+    </select>
+
+    <update id="updateFeedbackResultByUser">
+        UPDATE working
+        SET feedback_result = #{feedbackResult}, feedback_time = #{time}
+        WHERE message_id = #{messageId} AND (user_id = #{userId1} OR user_id = #{userId2})
+    </update>
+
+    <update id="updateFeedbackResultByUser2">
+        UPDATE working
+        SET feedback_result = #{feedbackResult}, feedback_time = #{time}
+        WHERE message_id = #{messageId}
+        AND user_id != #{userId1}
+        AND user_id != #{userId2}
+    </update>
+
+    <select id="getOneUnDistributionMessageData" resultMap="messageData">
+        SELECT
+          m.id,
+          m.message_id,
+          m.batch_number,
+          m.min_batch_number,
+          m.patrol_car_id,
+          m.patrol_car_number,
+          m.area_number,
+          m.area_name,
+          m.park_number,
+          m.park_status,
+          m.car_number,
+          m.photograph_time,
+          m.push_status,
+          m.push_time,
+          m.send_status,
+          m.type,
+          m.record_time,
+          m.new_car_number,
+          m.panorama,
+          m.distribution,
+          m.update_time,
+          m.distribution_times,
+          m.one_user_id,
+          m.two_user_id,
+          m.three_user_id,
+          m.tag,
+          m.status
+        FROM message_data AS m
+        WHERE m.distribution IS NULL
+        AND m.type = 'ABNORMAL'
+        AND m.record_time BETWEEN #{startTime} AND #{endTime}
+        ORDER BY m.record_time ASC
+        LIMIT 1
+    </select>
+
+    <select id="getOneDistrMsgDataByUserId" resultMap="messageData">
+        SELECT
+        m.id,
+        m.message_id,
+        m.batch_number,
+        m.min_batch_number,
+        m.patrol_car_id,
+        m.patrol_car_number,
+        m.area_number,
+        m.area_name,
+        m.park_number,
+        m.park_status,
+        m.car_number,
+        m.photograph_time,
+        m.push_status,
+        m.push_time,
+        m.send_status,
+        m.type,
+        m.record_time,
+        m.new_car_number,
+        m.panorama,
+        m.distribution,
+        m.update_time,
+        m.distribution_times,
+        m.one_user_id,
+        m.two_user_id,
+        m.three_user_id,
+        m.tag,
+        m.status
+        FROM message_data AS m
+        WHERE m.record_time BETWEEN #{startTime} AND #{endTime}
+        AND m.type = 'ABNORMAL'
+        AND m.distribution_times = 1
+        AND m.one_user_id != #{userId}
+        <if test="batchNumber != null and batchNumber.trim() != ''">
+            AND m.batch_number = #{batchNumber}
+        </if>
+        ORDER BY m.record_time ASC
+        LIMIT 1
+    </select>
+
+    <select id="getMessageDataByMsgId" resultMap="messageData">
+        SELECT
+          m.id,
+          m.message_id,
+          m.batch_number,
+          m.min_batch_number,
+          m.patrol_car_id,
+          m.patrol_car_number,
+          m.area_number,
+          m.area_name,
+          m.park_number,
+          m.park_status,
+          m.car_number,
+          m.photograph_time,
+          m.push_status,
+          m.push_time,
+          m.send_status,
+          m.type,
+          m.record_time,
+          m.new_car_number,
+          m.panorama,
+          m.distribution,
+          m.update_time,
+          m.distribution_times,
+          m.one_user_id,
+          m.two_user_id,
+          m.three_user_id,
+          m.tag,
+          m.status,
+          i.id,
+          i.parent_id,
+          i.patrol_car_number,
+          i.batch_number,
+          i.park_number,
+          i.image,
+          i.image_post,
+          i.time,
+          i.frequency,
+          i.send_status
+        FROM message_data AS m
+          LEFT JOIN parking_space_images AS i
+            ON m.batch_number = i.batch_number AND m.park_number = i.park_number
+        WHERE m.message_id = #{messageId}
+    </select>
+
+    <select id="getWorkingByUserIdAndTime" resultMap="working">
+        SELECT
+        w.id,
+        w.parent_id,
+        w.message_id,
+        w.user_id,
+        w.allocate_time,
+        w.allocate_car_number,
+        w.audit_car_number,
+        w.audit_time,
+        w.feedback_result,
+        w.feedback_time,
+        w.times
+        FROM working AS w
+        <where>
+            <if test="userId != null">
+                AND w.user_id = #{userId}
+            </if>
+            <if test="(startTime != null and startTime.trim() != '') and (endTime != null and endTime.trim() != '')">
+                AND w.allocate_time BETWEEN #{startTime} AND #{endTime}
+            </if>
+        </where>
+        ORDER BY w.allocate_time DESC
+    </select>
+
+    <select id="getWorkingByTime" resultMap="working">
+        SELECT
+          w.id,
+          w.parent_id,
+          w.message_id,
+          w.user_id,
+          w.allocate_time,
+          w.allocate_car_number,
+          w.audit_car_number,
+          w.audit_time,
+          w.feedback_result,
+          w.feedback_time,
+          w.times
+        FROM working AS w
+        WHERE w.allocate_time BETWEEN #{startTime} AND #{endTime}
+        ORDER BY w.allocate_time ASC
+    </select>
+
+    <select id="getDistinctWorkingByTime" resultType="java.lang.String">
+        SELECT
+          distinct
+          w.message_id
+        FROM working AS w
+        WHERE w.allocate_time BETWEEN #{startTime} AND #{endTime}
+    </select>
+
+    <select id="getMessageIdByBatchNumAndPatCarNum" resultType="java.lang.String">
+        SELECT m.message_id
+        FROM message_data AS m
+        WHERE m.batch_number = #{batchNumber} AND m.patrol_car_number = #{patrolCarNumber}
+    </select>
+
+    <select id="getWorkingByMessageId" resultMap="working">
+         SELECT
+          w.id,
+          w.parent_id,
+          w.message_id,
+          w.user_id,
+          w.allocate_time,
+          w.allocate_car_number,
+          w.audit_car_number,
+          w.audit_time,
+          w.feedback_result,
+          w.feedback_time,
+          w.times
+        FROM working AS w
+        WHERE w.message_id = #{messageId}
+    </select>
+
+    <select id="getWorkingFromAdmin" resultMap="working">
+        SELECT
+          w.id,
+          w.parent_id,
+          w.message_id,
+          w.user_id,
+          w.allocate_time,
+          w.allocate_car_number,
+          w.audit_car_number,
+          w.audit_time,
+          w.feedback_result,
+          w.feedback_time,
+          w.times
+        FROM working AS w
+        WHERE w.user_id = 1
+        AND w.allocate_time BETWEEN #{startTime} AND #{endTime}
+    </select>
+
+    <select id="updateWorkingUserId">
+        UPDATE working
+        SET user_id = #{userId}
+        WHERE message_id = #{messageId} AND user_id = 1
+    </select>
+
+</mapper>

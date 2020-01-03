@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cwp.cloud.mapper.ModifyResultsMapper">
+
+    <resultMap id="modifyResults" type="com.cwp.cloud.bean.user.ModifyResults">
+        <result property="id" column="id"/>
+        <result property="messageId" column="message_id"/>
+        <result property="patrolCarNumber" column="patrol_car_number"/>
+        <result property="batchNumber" column="batch_number"/>
+        <result property="parkNumber" column="park_number"/>
+        <result property="carNumber" column="car_number"/>
+        <result property="userId" column="user_id"/>
+        <result property="userName" column="user_name"/>
+        <result property="auditCarNumber" column="audit_car_number"/>
+        <result property="auditTime" column="audit_time"/>
+    </resultMap>
+
+    <resultMap id="checkUserMap" type="com.cwp.cloud.bean.user.CheckUserInfo">
+        <result property="userId" column="user_id"/>
+        <result property="userName" column="user_name"/>
+        <result property="auditCarNumber" column="audit_car_number"/>
+        <result property="auditTime" column="audit_time"/>
+    </resultMap>
+
+    <insert id="saveModifyResults" parameterType="com.cwp.cloud.bean.user.ModifyResults">
+        INSERT INTO modify_results (id, message_id, patrol_car_number, batch_number, park_number, car_number, user_id, user_name, audit_car_number, audit_time)
+        VALUES (#{id}, #{messageId}, #{patrolCarNumber}, #{batchNumber}, #{parkNumber}, #{carNumber}, #{userId}, #{userName}, #{auditCarNumber}, #{auditTime})
+    </insert>
+
+    <select id="getModifyResults" resultMap="modifyResults">
+        SELECT
+          m.id                     AS id,
+          m.message_id             AS message_id,
+          m.patrol_car_number      AS patrol_car_number,
+          m.batch_number           AS batch_number,
+          m.park_number            AS park_number,
+          m.car_number             AS car_number,
+          m.user_id                AS user_id,
+          m.audit_car_number       AS audit_car_number,
+          m.audit_time             AS audit_time
+        FROM modify_results AS m
+        <where>
+            <if test="userId != null">
+                AND m.user_id = #{userId}
+            </if>
+            <if test="(startTime != null and startTime.trim() != '') and (endTime != null and endTime.trim() != '')">
+                AND m.audit_time BETWEEN #{startTime} AND #{endTime}
+            </if>
+        </where>
+        ORDER BY m.audit_time DESC
+    </select>
+
+
+    <select id="getDistinctModifyResults" resultMap="modifyResults">
+        select distinct message_id,patrol_car_number,batch_number,park_number,car_number from modify_results
+        <where>
+            <if test="(startTime != null and startTime.trim() != '') and (endTime != null and endTime.trim() != '')">
+                AND audit_time BETWEEN #{startTime} AND #{endTime}
+            </if>
+        </where>
+        ORDER BY batch_number DESC
+    </select>
+
+    <select id="getCheckUserInfoList" resultMap="checkUserMap">
+        select user_id,user_name,audit_car_number,audit_time from modify_results where message_id = #{messageId}
+    </select>
+
+    <select id="getCheckUserInfoCountByMessageId" resultType="java.lang.Integer">
+        select count(*) from modify_results where message_id = #{messageId}
+    </select>
+
+</mapper>

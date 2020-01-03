@@ -1,0 +1,13 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.cwp.cloud.api.TopicApi,\
+com.cwp.cloud.api.MessageDataApi,\
+com.cwp.cloud.api.UserApi,\
+com.cwp.cloud.api.CheckApi,\
+com.cwp.cloud.service.KafkaTopicService,\
+com.cwp.cloud.service.MessageDataService,\
+com.cwp.cloud.service.UserService,\
+com.cwp.cloud.service.CheckService,\
+com.cwp.cloud.tools.TestController,\
+com.cwp.cloud.kafka.MessageTransfer,\
+com.cwp.cloud.push.PushManager,\
+com.cwp.cloud.utils.IdWorker

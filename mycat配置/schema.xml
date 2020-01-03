@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<!DOCTYPE mycat:schema SYSTEM "schema.dtd">
+<mycat:schema xmlns:mycat="http://io.mycat/">
+ 
+ <!-- 设置表的存储方式.schema name="TESTDB" 与 server.xml中的 TESTDB 设置一致  -->  
+    <schema name="TESTDB" checkSQLschema="false" sqlMaxLimit="-1">
+		<!--
+        <table name="users" primaryKey="id" dataNode="node_db01" />
+        <table name="item" primaryKey="id" dataNode="node_db02,node_db03" rule="role1" />
+		-->
+
+		<!-- web端的数据库 -->
+		<table name="car" dataNode="web"/>
+		<table name="area" dataNode="web"/>
+		<table name="parking" dataNode="web"/>
+		<table name="result" dataNode="web"/>
+		<table name="result_image" dataNode="web"/>
+		<table name="persistent_logins" dataNode="web"/>
+		
+
+		<!--  在 clouddb 中存放其他数据量小的表 -->
+		<table name="kafka_topic" dataNode="cloud"/>
+		<table name="batch_number" dataNode="cloud"/>
+		<table name="users" dataNode="cloud"/>
+		<table name="attendance" dataNode="cloud"/>
+		<table name="roles" dataNode="cloud"/>
+		
+		<!-- 
+	  在 db01 - db10 十个节点中存放数据量较大的表, 如果不够用，可以继续创建节点, 新增节点时，记得配置 rule.xml 中的节点数量 
+		-->
+		<table name="message_data" primaryKey="id" dataNode="node01,node02,node03,node04,node05,node06,node07,node08,node09,node10" rule="role1">
+			<childTable name="parking_space_images" primaryKey="id" joinKey="parent_id" parentKey="id" />
+			<childTable name="working" primaryKey="id" joinKey="parent_id" parentKey="id" />
+		</table>
+		<table name="modify_results" primaryKey="id" dataNode="node01,node02,node03,node04,node05,node06,node07,node08,node09,node10" rule="role1"/>
+    </schema>  
+ 
+    <!-- 设置dataNode 对应的数据库,及 mycat 连接的地址dataHost --> 
+	<dataNode name="web" dataHost="dataHost01" database="webdb" />
+	<dataNode name="cloud" dataHost="dataHost01" database="clouddb" />
+    <dataNode name="node01" dataHost="dataHost01" database="db01" />  
+    <dataNode name="node02" dataHost="dataHost01" database="db02" />  
+    <dataNode name="node03" dataHost="dataHost01" database="db03" /> 
+	<dataNode name="node04" dataHost="dataHost01" database="db04" />  
+    <dataNode name="node05" dataHost="dataHost01" database="db05" />  
+    <dataNode name="node06" dataHost="dataHost01" database="db06" /> 
+	<dataNode name="node07" dataHost="dataHost01" database="db07" />  
+    <dataNode name="node08" dataHost="dataHost01" database="db08" />  
+    <dataNode name="node09" dataHost="dataHost01" database="db09" /> 
+	<dataNode name="node10" dataHost="dataHost01" database="db10" /> 
+ 
+    <!-- mycat 逻辑主机dataHost对应的物理主机.其中也设置对应的mysql登陆信息 -->  
+    <dataHost name="dataHost01" maxCon="1000" minCon="10" balance="0" writeType="0" dbType="mysql" dbDriver="native">  
+            <heartbeat>select user()</heartbeat>
+			<!-- 如果连接不上，将 127.0.0.1 修改成服务器真实 ip 即可，原因不明... -->
+            <writeHost host="server1" url="127.0.0.1:3306" user="root" password="root"/>
+    </dataHost>
+ 
+</mycat:schema>

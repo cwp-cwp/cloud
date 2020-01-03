@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cwp.cloud.mapper.UserMapper">
+
+    <resultMap id="user" type="com.cwp.cloud.bean.user.User">
+        <result property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="name" column="name"/>
+        <result property="phoneNumber" column="phone_number"/>
+        <result property="rolesId" column="roles_id"/>
+        <result property="area" column="area"/>
+        <result property="addTime" column="add_time"/>
+        <result property="workStatus" column="work_status"/>
+        <result property="roles" column="roles_name"/>
+    </resultMap>
+
+    <insert id="addUser" parameterType="com.cwp.cloud.bean.user.User">
+        INSERT INTO users (id, username, password, name, phone_number, roles_id, area, add_time, work_status)
+        VALUES (#{id}, #{username}, #{password}, #{name}, #{phoneNumber}, #{rolesId}, #{area}, #{addTime}, #{workStatus})
+    </insert>
+
+    <select id="login" resultMap="user">
+        SELECT
+          u.id,
+          u.username,
+          u.password,
+          u.name,
+          u.phone_number,
+          u.roles_id,
+          u.area,
+          u.add_time,
+          u.work_status,
+          r.roles_name
+        FROM users AS u INNER JOIN roles AS r ON u.roles_id = r.id
+        WHERE u.username = #{username} AND u.password = #{password}
+     </select>
+
+    <select id="loginByUserName" resultMap="user">
+        SELECT
+          u.id,
+          u.username,
+          u.password,
+          u.name,
+          u.phone_number,
+          u.roles_id,
+          u.area,
+          u.add_time,
+          u.work_status,
+          r.roles_name
+        FROM users AS u INNER JOIN roles AS r ON u.roles_id = r.id
+        WHERE u.username = #{username}
+     </select>
+
+    <select id="loginById" resultMap="user">
+        SELECT
+          u.id,
+          u.username,
+          u.password,
+          u.name,
+          u.phone_number,
+          u.roles_id,
+          u.area,
+          u.add_time,
+          u.work_status,
+          r.roles_name
+        FROM users AS u INNER JOIN roles AS r ON u.roles_id = r.id
+        WHERE u.id = #{id}
+     </select>
+
+    <update id="modifyUser" parameterType="com.cwp.cloud.bean.user.User">
+        <if test="id != null">
+            UPDATE users
+            <set>
+                <if test="username != null and username.trim() != ''">
+                    username = #{username},
+                </if>
+                <if test="password != null and password.trim() != ''">
+                    password = #{password},
+                </if>
+                <if test="name != null and name.trim() != ''">
+                    name = #{name},
+                </if>
+                <if test="phoneNumber != null and phoneNumber.trim() != ''">
+                    phone_number = #{phoneNumber},
+                </if>
+                <if test="rolesId != null">
+                    roles_id = #{rolesId},
+                </if>
+                <if test="area != null and area.trim() != ''">
+                    area = #{area},
+                </if>
+            </set>
+            WHERE id = #{id}
+        </if>
+    </update>
+
+    <select id="getUserList" resultMap="user">
+        SELECT
+        u.id, u.username, u.password, u.name, u.phone_number, u.roles_id, u.area, u.add_time, u.work_status,
+        r.roles_name
+        FROM users AS u INNER JOIN roles AS r ON u.roles_id = r.id
+        <where>
+            <if test="username != null and username.trim() != ''">
+                AND u.username = #{username}
+            </if>
+            <if test="phoneNumber != null and phoneNumber.trim() != ''">
+                AND u.phone_number = #{phoneNumber}
+            </if>
+        </where>
+        ORDER BY u.id ASC
+    </select>
+
+    <update id="checkIn" parameterType="java.lang.Integer">
+        UPDATE users
+            SET work_status = 'checkIn'
+            WHERE id = #{userId}
+    </update>
+
+    <update id="checkOut" parameterType="java.lang.Integer">
+        UPDATE users
+            SET work_status = 'checkOut'
+            WHERE id = #{userId}
+    </update>
+
+    <select id="getCheckInUser" resultMap="user">
+        select
+          u.id,
+          u.username,
+          u.password,
+          u.name,
+          u.phone_number,
+          u.roles_id,
+          u.area,
+          u.add_time,
+          u.work_status,
+          r.roles_name
+        from users as u inner join roles AS r ON u.roles_id = r.id
+        where u.work_status = 'checkIn'
+              and u.roles_id != 1
+    </select>
+
+    <select id="getUserById" resultMap="user">
+        SELECT
+          u.id,
+          u.username,
+          u.password,
+          u.name,
+          u.phone_number,
+          u.roles_id,
+          u.area,
+          u.add_time,
+          u.work_status
+        FROM users AS u
+        WHERE u.id = #{userId}
+        LIMIT 1
+    </select>
+
+</mapper>
